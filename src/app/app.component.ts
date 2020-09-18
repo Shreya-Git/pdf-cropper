@@ -3,6 +3,7 @@ import { PDFJSStatic, PDFDocumentProxy, PDFPageProxy } from 'pdfjs-dist';
 import * as  PDFJS from 'pdfjs-dist/build/pdf';
 import pdfjsWorker from 'pdfjs-dist/build/pdf.worker.entry';
 
+
 declare global {
   const PDFJS: PDFJSStatic;
 }
@@ -49,10 +50,12 @@ export class AppComponent implements OnInit {
   pdfurl = 'assets/demo.pdf';
   result: any;
   imgURL: string;
+  page_num: number = 0;
+  pdfDoc: any;
+
   ngOnInit() {
 
     this.imgURL = "assets/download.jpg";
-    console.log("Working", PDFJS);
     this.renderPDF();
 
   }
@@ -61,19 +64,46 @@ export class AppComponent implements OnInit {
   renderPDF() {
     PDFJS.GlobalWorkerOptions.workerSrc = pdfjsWorker;
     PDFJS.getDocument(this.pdfurl).promise.then((pdf: PDFDocumentProxy) => {
-      this.renderDoc(pdf);
+      this.renderDoc(pdf, 1);
+      this.pdfDoc = pdf;
     })
   }
 
-  renderDoc(pdfDoc) {
-    for (var num = 1; num <= pdfDoc.numPages; num++)
-      pdfDoc.getPage(num).then((page) => {
+  renderDoc(pdfDoc, num) {
+    this.page_num = num;
+    // for (var num = 1; num <= pdfDoc.numPages; num++)
+    if (this.page_num <= pdfDoc.numPages) {
+      pdfDoc.getPage(this.page_num).then((page) => {
         this.renderPage(page);
+        console.log("num", num)
+        console.log("page", page)
       });
+    }
+
+  }
+
+  nextPage() {
+    this.page_num = this.page_num + 1;
+    if (this.page_num <= this.pdfDoc.numPages) {
+      this.renderDoc(this.pdfDoc, this.page_num);
+    }
+    else {
+      console.log("Error: Page Not Found")
+    }
+
+  }
+
+  prevPage() {
+    this.page_num = this.page_num - 1;
+    if (this.page_num > 0) {
+      this.renderDoc(this.pdfDoc, this.page_num);
+    }
+    else {
+      console.log("Error: Page Not Found")
+    }
   }
 
   renderPage(page) {
-    console.log("renderPage", page._pageIndex);
     var viewport = page.getViewport({ scale: 1 });
     var wrapper = document.createElement("div");
     wrapper.className = "canvas-wrapper";
@@ -89,34 +119,12 @@ export class AppComponent implements OnInit {
     wrapper.appendChild(canvas)
     //this.holder.nativeElement.appendChild(wrapper);
     page.render(renderContext).promise.then(() => {
-      console.log("renderContext", renderContext)
       this.result = canvas.toDataURL('image/jpeg');
-
-      console.log("result", this.result)
     });
+
 
   }
 
-  // private loadImageFile(file: File) {
-  //   const fileReader = new FileReader();
-  //   const imageType = file.type;
-  //   console.log("imageType", imageType)
-  //   if (PDFJS && imageType === 'application/pdf') {
-  //     PDFJS.getDocument({ url: this.pdfurl }).then((pdf: PDFDocumentProxy) => {
-  //       pdf.getPage(1).then((page: PDFPageProxy) => {
-  //         const viewport = page.getViewport({ scale: 1 });
-  //         const canvasFactory = new NodeCanvasFactory();
-  //         const workspace = canvasFactory.create(viewport.width, viewport.height);
-  //         const renderContext = {
-  //           canvasContext: workspace.context || new CanvasRenderingContext2D(),
-  //           viewport: viewport,
-  //           canvasFactory: canvasFactory,
-  //         };
-  //         const result = workspace.canvas.toDataURL('image/jpeg');
-  //       })
-  //     })
-  //   }
 
-  // }
 
 }

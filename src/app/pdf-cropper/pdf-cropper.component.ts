@@ -52,4 +52,8 @@ export class PdfCropperComponent implements OnInit {
 
   }
 
+  resetCropper() {
+    this.cropper.destroy();
+    this.imageDestination = " ";
+  }
 }
