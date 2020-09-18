@@ -123,6 +123,10 @@
           }
         }
       }
-    }},
-  "defaultProject": "pdf-cropper"
+    }
+  },
+  "defaultProject": "pdf-cropper",
+  "cli": {
+    "analytics": false
+  }
 }
